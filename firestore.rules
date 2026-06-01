@@ -1,0 +1,136 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. catch-all global safety net (default deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Global helper primitives
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Hardened admin validation: restricts access to the verified user's email
+    function isAdmin() {
+      return isSignedIn() &&
+             request.auth.token.email == "deephotography0786@gmail.com" &&
+             request.auth.token.email_verified == true;
+    }
+
+    // ---------------------------------------------
+    // WebConfig Entity Guard
+    // ---------------------------------------------
+    function isValidWebConfig(data) {
+      return data.phone is string && data.phone.size() <= 32 &&
+             data.whatsapp is string && data.whatsapp.size() <= 32 &&
+             data.address is string && data.address.size() <= 256 &&
+             data.email is string && data.email.size() <= 128 &&
+             data.googleMapEmbedUrl is string && data.googleMapEmbedUrl.size() <= 8192 &&
+             data.experienceYears is int && data.experienceYears >= 0 && data.experienceYears <= 100 &&
+             data.consultationFee is string && data.consultationFee.size() <= 64 &&
+             data.warrantyYears is int && data.warrantyYears >= 0 && data.warrantyYears <= 50;
+    }
+
+    match /config/{configId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidWebConfig(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // ---------------------------------------------
+    // Portfolio / Projects Entity Guard
+    // ---------------------------------------------
+    function isValidProject(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.title is string && data.title.size() <= 256 &&
+             data.category is string && (data.category == 'bedroom' || data.category == 'living' || data.category == 'kitchen' || data.category == 'office' || data.category == 'dining' || data.category == 'furniture') &&
+             data.image is string && data.image.size() <= 2500000 &&
+             data.get('description', '') is string && data.get('description', '').size() <= 4096 &&
+             data.get('beforeImage', '') is string && data.get('beforeImage', '').size() <= 2500000 &&
+             data.get('clientName', '') is string && data.get('clientName', '').size() <= 256 &&
+             data.get('budget', '') is string && data.get('budget', '').size() <= 64 &&
+             data.get('location', '') is string && data.get('location', '').size() <= 256;
+    }
+
+    match /portfolio/{projectId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidProject(incoming());
+      allow update: if isAdmin() && isValidProject(incoming()) && (incoming().id == existing().id);
+      allow delete: if isAdmin();
+    }
+
+    // ---------------------------------------------
+    // Reviews Entity Guard
+    // ---------------------------------------------
+    function isValidReview(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.clientName is string && data.clientName.size() <= 128 &&
+             data.rating is int && data.rating >= 1 && data.rating <= 5 &&
+             data.reviewText is string && data.reviewText.size() <= 2048 &&
+             data.date is string && data.date.size() <= 64 &&
+             data.source is string && (data.source == 'Google Reviews' || data.source == 'Direct') &&
+             data.get('designation', '') is string && data.get('designation', '').size() <= 128;
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidReview(incoming());
+      allow update: if isAdmin() && isValidReview(incoming()) && (incoming().id == existing().id);
+      allow delete: if isAdmin();
+    }
+
+    // ---------------------------------------------
+    // Inquiries Entity Guard (Protected Customer Submissions)
+    // ---------------------------------------------
+    function isValidInquiry(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.name is string && data.name.size() <= 128 &&
+             data.phone is string && data.phone.size() <= 32 &&
+             data.status is string && (data.status == 'new' || data.status == 'contacted' || data.status == 'completed') &&
+             data.timestamp is string && data.timestamp.size() <= 64 &&
+             data.get('email', '') is string && data.get('email', '').size() <= 128 &&
+             data.get('service', '') is string && data.get('service', '').size() <= 128 &&
+             data.get('message', '') is string && data.get('message', '').size() <= 2048 &&
+             data.get('remarks', '') is string && data.get('remarks', '').size() <= 2048;
+    }
+
+    match /inquiries/{inquiryId} {
+      allow read, delete: if isAdmin();
+      allow create: if isValidInquiry(incoming()) && (incoming().status == 'new');
+      allow update: if isAdmin() && isValidInquiry(incoming()) && (incoming().id == existing().id);
+    }
+
+    // ---------------------------------------------
+    // Blogs Entity Guard
+    // ---------------------------------------------
+    function isValidBlog(data) {
+      return data.id is string && isValidId(data.id) &&
+             data.title is string && data.title.size() <= 256 &&
+             data.excerpt is string && data.excerpt.size() <= 1024 &&
+             data.content is string && data.content.size() <= 1000000 &&
+             data.image is string && data.image.size() <= 2500000 &&
+             data.author is string && data.author.size() <= 128 &&
+             data.date is string && data.date.size() <= 64;
+    }
+
+    match /blogs/{blogId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidBlog(incoming());
+      allow update: if isAdmin() && isValidBlog(incoming()) && (incoming().id == existing().id);
+      allow delete: if isAdmin();
+    }
+  }
+}

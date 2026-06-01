@@ -1,0 +1,6 @@
+{
+  "name": "Kasis Interior",
+  "description": "Premium Luxury Interior Design & Custom Furniture solutions in Kolkata, West Bengal. Transforming spaces with bespoke design, modular kitchens, luxury bedrooms, and commercial layouts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

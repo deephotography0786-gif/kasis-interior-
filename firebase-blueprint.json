@@ -1,0 +1,106 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A luxury interior design portfolio project item.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string", "enum": ["bedroom", "living", "kitchen", "office", "furniture", "dining"] },
+        "image": { "type": "string" },
+        "description": { "type": "string" },
+        "beforeImage": { "type": "string" },
+        "clientName": { "type": "string" },
+        "budget": { "type": "string" },
+        "location": { "type": "string" }
+      },
+      "required": ["id", "title", "category", "image"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "A client testimonial review.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clientName": { "type": "string" },
+        "rating": { "type": "integer" },
+        "reviewText": { "type": "string" },
+        "date": { "type": "string" },
+        "source": { "type": "string", "enum": ["Google Reviews", "Direct"] },
+        "designation": { "type": "string" }
+      },
+      "required": ["id", "clientName", "rating", "reviewText", "date", "source"]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "A lead submission or inquiry from a potential client.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "service": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["new", "contacted", "completed"] },
+        "timestamp": { "type": "string" },
+        "remarks": { "type": "string" }
+      },
+      "required": ["id", "name", "phone", "status", "timestamp"]
+    },
+    "Blog": {
+      "title": "Blog",
+      "description": "A designer educational article blog item.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "content": { "type": "string" },
+        "image": { "type": "string" },
+        "author": { "type": "string" },
+        "date": { "type": "string" }
+      },
+      "required": ["id", "title", "excerpt", "content", "image", "author", "date"]
+    },
+    "WebConfig": {
+      "title": "WebConfig",
+      "description": "Global brand metadata and parameters.",
+      "type": "object",
+      "properties": {
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "address": { "type": "string" },
+        "email": { "type": "string" },
+        "googleMapEmbedUrl": { "type": "string" },
+        "experienceYears": { "type": "integer" },
+        "consultationFee": { "type": "string" },
+        "warrantyYears": { "type": "integer" }
+      },
+      "required": ["phone", "whatsapp", "address", "email", "googleMapEmbedUrl", "experienceYears", "consultationFee", "warrantyYears"]
+    }
+  },
+  "firestore": {
+    "config/{configId}": {
+      "schema": "WebConfig",
+      "description": "Global configuration document."
+    },
+    "portfolio/{projectId}": {
+      "schema": "Project",
+      "description": "Bespoke projects gallery list."
+    },
+    "reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Testimonials and client praise."
+    },
+    "inquiries/{inquiryId}": {
+      "schema": "Inquiry",
+      "description": "Inbound potential customer leads."
+    },
+    "blogs/{blogId}": {
+      "schema": "Blog",
+      "description": "Design blog posts and trends."
+    }
+  }
+}
